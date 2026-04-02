@@ -1,0 +1,9 @@
+__pycache__/ 
+
+.vscode/ 
+
+*.pt
+
+0.demo1文本分类/
+
+swanlog/

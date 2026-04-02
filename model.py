@@ -4,7 +4,7 @@ import config
 class BertClassifier(nn.Module):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.bert=BertModel.from_pretrained("E:/bert_test/bert-base-uncased")
+        self.bert=BertModel.from_pretrained(config.model_name)
         self.dropout=nn.Dropout(0.1)
         self.fc=nn.Linear(self.bert.config.hidden_size,config.num_classes)
 
