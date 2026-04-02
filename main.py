@@ -7,10 +7,13 @@ from model import BertClassifier
 from train import Trainer
 import torch 
 import config
+
 def random_seed(seed):
     random .seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True  # 强制使用确定性的算法
+    torch.backends.cudnn.benchmark = False  # 禁用非确定性算法
 random_seed(42)
 
 

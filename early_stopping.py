@@ -10,8 +10,8 @@ class EarlyStopping:
         self.best_score=None
         self.early_stop=False
         self.best_model=None
-    def __call__(self,dev_acc,model,optimizer,scheduler,epoch,loss):
-        score=dev_acc
+    def __call__(self,dev_loss,model,optimizer,scheduler,epoch,loss):
+        score=-dev_loss
 
         if self.best_score is None:
             self.best_score=score
@@ -44,6 +44,4 @@ class EarlyStopping:
         model.load_state_dict(checkpoint['model'])
         return model
     
-    def get_dev_best_acc(self):
-        best_acc=self.best_score
-        return best_acc
+    

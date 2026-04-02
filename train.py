@@ -110,11 +110,13 @@ class Trainer():
                 "验证准确率":dev_acc
             })
 
-            if self.early_stopping(dev_acc,self.model,self.optimizer,self.scheduler,epoch,dev_loss):
-                print(f"在epoch{epoch}发生训练早停")
-                dev_best_acc=self.early_stopping.get_dev_best_acc()
-                print(f"最优验证准确率为：{dev_best_acc:.4f}")
+            if dev_acc>dev_best_acc:
+                dev_best_acc=dev_acc
+                print(f"当前模型最优准确率为：{dev_best_acc}")
+            if self.early_stopping(dev_loss,self.model,self.optimizer,self.scheduler,epoch,dev_loss):
+                print(f"在epoch{epoch+1}发生训练早停")
                 break
-
-        
+            
+            
+        print(f"模型最优准确率为：{dev_best_acc}")
     
