@@ -35,7 +35,7 @@
 ``` 
 pip install -r requirements.txt
 ``` 
-##模型参数设置
+## 模型参数设置
 ``` 
 model_name="bert-base-uncased"
 max_length=128
