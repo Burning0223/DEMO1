@@ -20,7 +20,7 @@
 116 电竞 游戏 news_game
 '''
 ## 项目结构
-'''
+···
 ├── config.py          # 配置类
 ├── model.py           # BERT 模型定义
 ├── data_process.py    #数据预处理
@@ -29,7 +29,7 @@
 ├── main.py            #主程序
 ├── requirements.txt  # 环境依赖
 └── README.md         # 项目说明
-'''
+···
 ## 环境依赖
 '''
 pip install -r requirements.txt
