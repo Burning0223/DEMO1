@@ -35,10 +35,7 @@ def main():
     
     trainer=Trainer(model,optimizer,scheduler,patience=config.patience)
     trainer.train_with_early_stopping(train_dataloader,dev_dataloader)
-    ##test_loss,test_acc,test_report=trainer.test(model,test_dataloader)
-    #print(f"测试损失:{test_loss:.4f}")
-    #print(f"测试准确率:{test_acc:.4f}")
-    #print(f"测试报告:/n{test_report}")
+    
 if __name__=="__main__":
     main()
     
