@@ -113,7 +113,7 @@ class Trainer():
             if dev_acc>dev_best_acc:
                 dev_best_acc=dev_acc
                 print(f"当前模型最优准确率为：{dev_best_acc}")
-            if self.early_stopping(dev_loss,self.model,self.optimizer,self.scheduler,epoch,dev_loss):
+            if self.early_stopping(dev_loss,dev_acc,self.model,self.optimizer,self.scheduler,epoch):
                 print(f"在epoch{epoch+1}发生训练早停")
                 break
             

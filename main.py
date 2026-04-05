@@ -2,7 +2,7 @@ import random
 import numpy as np
 from transformers import get_linear_schedule_with_warmup
 import config
-from data_process import data_loader,load_data
+from data_process import data_loader,load_data,data_split
 from model import BertClassifier
 from train import Trainer
 import torch 
@@ -12,16 +12,15 @@ def random_seed(seed):
     random .seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True  # 强制使用确定性的算法
-    torch.backends.cudnn.benchmark = False  # 禁用非确定性算法
 random_seed(42)
 
 
 
 def main():
-    train_texts,train_keywords,train_labels=load_data('0.demo1文本分类/train_3k.txt')
-    dev_texts,dev_keywords,dev_labels=load_data('0.demo1文本分类/dev_1k.txt')
-    ##test_texts,test_keywords,test_labels=load_data('0.demo1文本分类/test_1k.txt')
+    texts,keywords,labels=load_data('0.demo1文本分类/toutiao_cat_data.txt')
+    train_texts,train_keywords,train_labels,dev_texts,dev_keywords,dev_labels,test_texts,test_keywords,text_labels=data_split(
+        texts,keywords,labels
+    )
 
     train_dataloader=data_loader(train_texts,train_keywords,train_labels,shuffle=True)
     dev_dataloader=data_loader(dev_texts,dev_keywords,dev_labels,shuffle=False)

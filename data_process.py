@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset,DataLoader
 from transformers import BertTokenizer
 import config
+from sklearn.model_selection import train_test_split
 def load_data(data_path):
     
     texts=[]
@@ -31,6 +32,18 @@ def load_data(data_path):
             labels.append(label)
 
     return texts,keywords,labels
+
+def data_split(texts,keywords,labels,test_size=0.15,dev_size=0.15,random=42):
+    x_train,x_temp,y_train,y_temp=train_test_split(
+        texts,labels,test_size=test_size+dev_size,random_state=random,stratify=labels
+    )
+    x_dev,x_test,y_dev,y_test=train_test_split(
+        x_temp,y_temp,test_size=test_size,random_state=random,stratify=y_temp
+    )
+    keywords_train=keywords[:len(x_train)]
+    keywords_dev=keywords[len(x_train):len(x_train)+len(x_dev)]
+    keywords_test=keywords[len(x_train)+len(x_dev):]
+    return x_train,keywords_train,y_train,x_dev,keywords_dev,y_dev,x_test,keywords_test,y_test
 
 tokenizer=BertTokenizer.from_pretrained(config.model_name)
 class TextClassificationDataset(Dataset):
