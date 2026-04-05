@@ -2,7 +2,7 @@
 基于 bert-base-chinese模型，使用 PyTorch 和 Hugging Face ，完成文本分类任务的训练与评估。
 ## 数据集
 来源：https://github.com/aceimnorstuvwxz/toutiao-text-classfication-dataset来自今日头条客户端，共15个类别：
-'''
+``` 
 100 民生 故事 news_story
 101 文化 文化 news_culture
 102 娱乐 娱乐 news_entertainment
@@ -18,9 +18,9 @@
 114 证券 股票 stock
 115 农业 三农 news_agriculture
 116 电竞 游戏 news_game
-'''
+``` 
 ## 项目结构
-'''
+``` 
 ├── config.py          # 配置类
 ├── model.py           # BERT 模型定义
 ├── data_process.py    #数据预处理
@@ -29,13 +29,13 @@
 ├── main.py            #主程序
 ├── requirements.txt  # 环境依赖
 └── README.md         # 项目说明
-'''
+``` 
 ## 环境依赖
-'''
+``` 
 pip install -r requirements.txt
-'''
+``` 
 ##模型参数设置
-'''
+``` 
 model_name="bert-base-uncased"
 max_length=128
 num_epochs=10
@@ -43,9 +43,9 @@ batch_size=16
 num_classes=15
 learning_rate=2e-5
 patience=2
-'''
+``` 
 ## 实验结果
-'''
+``` 
 训练损失:0.6435
 训练准确率:0.7987
 验证损失:1.1352
@@ -73,5 +73,5 @@ patience=2
    macro avg       0.66      0.64      0.64     97585
 weighted avg       0.70      0.70      0.70     97585
 
-'''
+``` 
 
