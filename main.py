@@ -28,7 +28,7 @@ def main():
     model=BertClassifier()
 
     optimizer=torch.optim.AdamW(
-        model.parameters(),lr=config.learning_rate,eps=1e-8
+        model.parameters(),lr=config.learning_rate
     )
     total_steps = len(train_dataloader) * config.num_epochs
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)
