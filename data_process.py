@@ -9,7 +9,8 @@ class TextClassificationDataset(Dataset):
     def __init__(self,dataset_type,config):
         super().__init__()
         self.config=config
-        self.texts,self.keywords,self.labels,self.label2id,self.id2label=self.load_data(self.config.data_path)
+        self.label2id,self.id2label=self.get_id_label()
+        self.texts,self.keywords,self.labels=self.load_data()
         self.num_classes=len(self.label2id)
         self.train_texts,self.train_keywords,self.train_labels,\
         self.dev_texts,self.dev_keywords,self.dev_labels,\
@@ -28,12 +29,29 @@ class TextClassificationDataset(Dataset):
         
         self.tokenizer=BertTokenizer.from_pretrained(config.model_path)
         
+    def get_id_label(self):
+        label_set=set()
+        with open(self.config.data_path,'r',encoding='utf-8') as f:
+            for line in f:
+                parts=line.strip().split("_!_")
+
+                label_code=int(parts[1])
+                label_set.add(label_code)
+
+            label2id={label:id for id,label in enumerate(sorted(label_set))}
+            id2label={id:label for label,id in label2id.items()}
+            mappings={
+                    "label2id":label2id,
+                    "id2label":id2label
+                }
+            with open("label_mapping.json",'w',encoding="utf-8") as f:
+                json.dump(mappings,f,ensure_ascii=False,indent=4)
+
+        return label2id,id2label
     def load_data(self):
-    
         texts=[]
         labels=[]
         keywords=[]
-        label_set=set()
         with open(self.config.data_path,'r',encoding='utf-8') as f:
             for line in f:
                 parts=line.strip().split("_!_")
@@ -42,7 +60,6 @@ class TextClassificationDataset(Dataset):
                 text=parts[3]
                 keyword=parts[4]
 
-                label_set.add(label_code)
                 keyword=keyword.replace(","," ")
                 texts.append(text)
                 keywords.append(keyword)
@@ -54,27 +71,7 @@ class TextClassificationDataset(Dataset):
                     label=-1
                 labels.append(label)
 
-            label2id={label:id for id,label in enumerate(sorted(label_set))}
-            id2label={id:label for label,id in label2id.items()}
-            mappings={
-                    "label2id":label2id,
-                    "id2label":id2label
-                }
-            with open("label_mapping.json",'w',encoding="utf-8") as f:
-                json.dump(mappings,f,ensure_ascii=False,indent=4)
-
-        return texts,keywords,labels,label2id,id2label
-    
-    def mappings_load(self):
-        try:
-            with open("label_mapping.json",'r',encoding="utf-8") as f:
-                mapppings=json.load(f)
-            return mapppings['label2id'],mapppings['id2label']
-        except FileNotFoundError:
-            print("警告：未找到标签映射文件")
-            return {},{}
-
-
+        return texts,keywords,labels
     
     def data_split(self,texts,keywords,labels):
         x_train,x_temp,y_train,y_temp=train_test_split(
