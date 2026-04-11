@@ -13,6 +13,7 @@ class Cls_Config:
         self.batch_size=self.config.get("batch_size",16)
         self.learning_rate=self.config.get("learning_rate",2e-5)
         self.patience=self.config.get("patience",2)
+        self.num_classes=self.config.get("num_classes",15)
         self.data_path=self.config.get("data_path","../0.demo1文本分类/toutiao_cat_data.txt")
         self.dropout=self.config.get("dropout",0.1)
         self.test_size=self.config.get("test_size",0.15)
@@ -80,8 +81,8 @@ class EarlyStopping:
             print(f"保存最佳模型：{checkpoint_path}")
 
 class Metrics:
-    def __init__(self,true_labels,pred_labels,id2label):
-        self.num_classes = len(set(true_labels))
+    def __init__(self,true_labels,pred_labels,id2label,config):
+        self.num_classes=config.num_classes
         self.true_labels=true_labels
         self.pred_labels=pred_labels
         self.id2label=id2label
@@ -140,9 +141,9 @@ class Metrics:
         return f1  
     def calculate_support(self):
         support=[0]*self.num_classes
-        label_count=Counter(self.true_labels)
-        for label,count in label_count.items():
-            support[label]=count
+        for label in self.true_labels:
+            label=int(label)
+            support[label]+=1
         return support
     def print_result(self):
         print(f"{'Class':<10}{'Precision':<15}{'Recall':<15}{'F1-Score':<15}{'Support':<10}")

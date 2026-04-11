@@ -8,7 +8,6 @@ from transformers import get_linear_schedule_with_warmup
 from data_process import TextClassificationDataset
 from model import BertClassifier
 from torch.utils.data import DataLoader
-import os
 
 def random_seed(seed):
     random .seed(seed)
@@ -38,7 +37,8 @@ class Trainer():
     def train(self,dataloader):
         self.model.train()
         total_loss=0.0
-
+        all_labels=[]
+        all_preds=[]
         for batch in dataloader:
             self.optimizer.zero_grad()
             input_ids=batch['input_ids']
@@ -47,14 +47,15 @@ class Trainer():
             labels=batch['labels']
             output=self.model(input_ids,attention_mask,token_type_ids)
             preds=torch.argmax(output,dim=1)
+            all_labels.extend(labels.numpy())
+            all_preds.extend(preds.numpy())
             loss=nn.CrossEntropyLoss()(output, labels)
             total_loss+=loss.item()
             loss.backward()
             self.optimizer.step()
             self.scheduler.step()
-           
         ave_loss=total_loss/len(dataloader)
-        train_metrics=Metrics(labels,preds,self.id2label)
+        train_metrics=Metrics(all_labels,all_preds,self.id2label,self.config)
         train_acc=train_metrics.acc
         train_support=train_metrics.support
         return ave_loss,train_acc,train_support
@@ -62,7 +63,8 @@ class Trainer():
     def dev(self,dataloader):
         self.model.eval()
         total_loss=0.0
-        
+        all_labels=[]
+        all_preds=[]
         with torch.no_grad():
             for batch in dataloader:
                 input_ids=batch['input_ids']
@@ -72,9 +74,11 @@ class Trainer():
                 output=self.model(input_ids,attention_mask,token_type_ids)
                 loss=nn.CrossEntropyLoss()(output, labels)
                 preds=torch.argmax(output,dim=1)
+                all_labels.extend(labels.numpy())
+                all_preds.extend(preds.numpy())
                 total_loss+=loss.item()
         ave_loss=total_loss/len(dataloader)
-        dev_metrics=Metrics(labels,preds,self.id2label)
+        dev_metrics=Metrics(all_labels,all_preds,self.id2label,self.config)
         dev_acc=dev_metrics.acc
         dev_report=dev_metrics.report
         return ave_loss,dev_acc,dev_report
@@ -91,7 +95,6 @@ class Trainer():
             print(f"训练集各分类样本数量：{train_support}")
             print(f"验证损失:{dev_loss:.4f}")
             print(f"验证准确率:{dev_acc:.4f}")
-            print(f"验证报告:\n{dev_report}")
             
             swanlab.log({
                 "epoch":epoch,

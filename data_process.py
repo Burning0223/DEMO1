@@ -40,6 +40,8 @@ class TextClassificationDataset(Dataset):
 
             label2id={label:id for id,label in enumerate(sorted(label_set))}
             id2label={id:label for label,id in label2id.items()}
+            if len(label2id)!=self.config.num_classes:
+                print(f"标签类别数不匹配！实际类别数：{len(label2id)}，配置文件中的类别数：{self.config.num_classes}")
             mappings={
                     "label2id":label2id,
                     "id2label":id2label
