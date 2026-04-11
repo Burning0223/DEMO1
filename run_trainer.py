@@ -22,7 +22,7 @@ class Trainer():
         self.config=config
         self.optimizer=optimizer
         self.scheduler=scheduler
-        self.early_stopping=EarlyStopping(self.config,patience=self.config.patience,verbose=True)
+        self.early_stopping=EarlyStopping(self.config)
         self.id2label=id2label
 
         swanlab.init(project="Bert_text_classification",
