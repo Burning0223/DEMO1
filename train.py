@@ -1,7 +1,7 @@
 import swanlab
 from torch import nn
 import torch
-from Bert_Config import Metrics,EarlyStopping
+from untils import Metrics,EarlyStopping
 
 
 
@@ -50,7 +50,8 @@ class Trainer():
         ave_loss=total_loss/len(dataloader)
         train_metrics=Metrics(labels,preds)
         train_acc=train_metrics.acc
-        return ave_loss,train_acc
+        train_support=train_metrics.support
+        return ave_loss,train_acc,train_support
     
     def dev(self,dataloader):
         self.model.eval()
@@ -76,11 +77,12 @@ class Trainer():
         dev_best_acc=0
         for epoch in range(self.num_epochs):
             print(f"Epoch {epoch+1}")
-            train_loss,train_acc=self.train(train_dataloader)
+            train_loss,train_acc,train_support=self.train(train_dataloader)
             dev_loss,dev_acc,dev_report=self.dev(dev_dataloader)
         
             print(f"训练损失:{train_loss:.4f}")
             print(f"训练准确率:{train_acc:.4f}")
+            print(f"训练集各分类样本数量：{train_support}")
             print(f"验证损失:{dev_loss:.4f}")
             print(f"验证准确率:{dev_acc:.4f}")
             print(f"验证报告:\n{dev_report}")
