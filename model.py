@@ -9,7 +9,7 @@ class BertClassifier(nn.Module):
         self.Dropout=nn.Dropout(self.config.dropout)
         self.fc=nn.Linear(self.bert.config.hidden_size,self.config.num_classes)
 
-    def forward(self,batch):
+    def forward(self,**batch):
         labels=batch.pop('labels')
         outputs=self.bert(**batch)
         pooled_output=outputs.pooler_output
