@@ -11,7 +11,7 @@ class Cls_Config:
         
     def load_config(self,config_path):
         if os.path.exists(config_path):
-            with open(self.config_path,'r', encoding='utf-8') as f:
+            with open(config_path,'r', encoding='utf-8') as f:
                 return json.load(f)
         return {}
 

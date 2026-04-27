@@ -8,12 +8,14 @@ class TextClassificationDataset(Dataset):
     def __init__(self,config,dataset_type):
         super().__init__()
         self.config=config
-        if dataset_type=="trian":
+        if dataset_type=="train":
             csv_file=self.config.train_data_path
-        if dataset_type=="dev":
+        elif dataset_type=="dev":
             csv_file=self.config.dev_data_path
-        if dataset_type=="test":
+        elif dataset_type=="test":
             csv_file=self.config.test_data_path
+        else:
+            raise ValueError(f"Unknown dataset type: {dataset_type}")
         self.label2id,self.id2label=self.get_id_label()
         self.texts,self.keywords,self.labels=self.load_data(csv_file)
         self.tokenizer=BertTokenizer.from_pretrained(config.model_path)
@@ -21,7 +23,7 @@ class TextClassificationDataset(Dataset):
     def get_id_label(self):
         label_set=set()
         for dataset in ['train','dev','test']:
-            csv_file=self.config.get(f"{dataset}_data_path")
+            csv_file=self.config.config_dict.get(f"{dataset}_data_path")
             data=pd.read_csv(csv_file)
             label_set.update(data['label'].tolist())
         label2id={label:id for id,label in enumerate(sorted(label_set))}
@@ -55,8 +57,9 @@ class TextClassificationDataset(Dataset):
 
     def collate_fn(self,batch):
         texts,keywords,labels=zip(*batch)
-        encoding=self.tokenizer(list(texts),list(keywords),return_tensors='pt',max_length=self.config.max_length,
-                            padding=True,truncation=True)
+        encoding=self.tokenizer([str(text) for text in texts],[str(keyword) for keyword in keywords],
+                                return_tensors='pt',max_length=self.config.max_length,
+                                padding=True,truncation=True)
         return {
                 'input_ids':encoding['input_ids'],
                 'attention_mask':encoding['attention_mask'],

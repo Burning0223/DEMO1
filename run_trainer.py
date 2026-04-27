@@ -64,7 +64,7 @@ class Trainer():
         with torch.no_grad():
             for batch in dataloader:
                 output,labels=self.model(**batch)
-                loss=nn.self.loss_fn(output, labels)
+                loss=self.loss_fn(output, labels)
                 preds=torch.argmax(output,dim=1)
                 all_labels.extend(labels.numpy())
                 all_preds.extend(preds.numpy())
