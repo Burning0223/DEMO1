@@ -2,7 +2,7 @@ import swanlab
 from torch import nn
 import os
 import torch
-from untils import Metrics,CheckpointManager,Cls_Config,create_labels_mapping,load_label_mapping
+from untils import Metrics,Cls_Config,create_labels_mapping,load_label_mapping
 import random
 import numpy as np
 from transformers import get_linear_schedule_with_warmup
@@ -25,17 +25,12 @@ class Trainer():
         self.id2label=id2label
         self.loss_fn=nn.CrossEntropyLoss()
 
-        self.experiment_name=f"max_length_{self.config.max_length}_num_epochs_{self.config.num_epochs}_batch_size_{self.config.batch_size}_lr_{self.config.learning_rate}"
+        self.experiment_name=f"max_len_{self.config.max_length}_num_epochs_{self.config.num_epochs}_bs_{self.config.batch_size}_lr_{self.config.learning_rate}_use_key_{self.use_keyword}"
         self.experiment_dir=os.path.join("experiment",self.experiment_name)
         os.makedirs(self.experiment_dir,exist_ok=True)
         swanlab.init(project="Bert_text_classification",
              experiment_name=self.experiment_name,
-             config={
-                "max_length":self.config.max_length,
-                "num_epochs":self.config.num_epochs,
-                "batch_size":self.config.batch_size,
-                "learning_rate":self.config.learning_rate
-             },
+             config=self.config.config_dict,
              mode="offline")
 
     def train(self,dataloader):
