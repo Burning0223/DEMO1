@@ -29,17 +29,17 @@ def load_label_mapping(data_path):
     return label2id, id2label
 
 class Cls_Config:
-    def __init__(self,config_path="Bert_Config.json"):
+    def __init__(self,config_path="config.json"):
         self.config_dict=self.load_config(config_path)
         for key,value in self.config_dict.items():
             setattr(self, key, value)
 
-        
-    def load_config(self,config_path):
-        if os.path.exists(config_path):
-            with open(config_path,'r', encoding='utf-8') as f:
-                return json.load(f)
-        return {}
+    def load_config(self, config_path):
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"配置文件不存在: {config_path}")
+
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
 
 class EarlyStopping:
     def __init__(self,config,verbose=False):

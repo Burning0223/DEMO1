@@ -9,5 +9,3 @@ data_path/
 swanlog/
 
 bert-base-chinese/
-
-label_mapping.json
