@@ -41,62 +41,6 @@ class Cls_Config:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-class EarlyStopping:
-    def __init__(self,config,verbose=False):
-        self.config=config
-        self.patience=self.config.patience
-        self.verbose=verbose
-        self.delta=self.config.delta
-        self.counter=0
-        self.best_score=None
-        self.early_stop=False
-        self.best_model_path=None
-        self.dev_best_acc=0
-
-        self.experiment_name=f"max_length_{self.config.max_length}_num_epochs_{self.config.num_epochs}_batch_size_{self.config.batch_size}_lr_{self.config.learning_rate}"
-        self.experiment_dir=os.path.join("experiment",self.experiment_name)
-        os.makedirs(self.experiment_dir,exist_ok=True)
-    def __call__(self,dev_loss,dev_acc,model,optimizer,scheduler,epoch):
-        score=-dev_loss
-
-        if self.best_score is None:
-            self.best_score=score
-            self.dev_best_acc=dev_acc
-            self.save_checkpoint(model,optimizer,scheduler,epoch,dev_loss,dev_acc)
-        elif score<self.best_score+self.delta:
-            self.counter+=1
-            if dev_acc>self.dev_best_acc:
-                self.dev_best_acc=dev_acc
-                self.save_checkpoint(model,optimizer,scheduler,epoch,dev_loss,dev_acc)
-            if self.verbose:
-                print(f'早停计数器:{self.counter}/{self.patience}')
-            if self.counter>=self.patience:
-                self.early_stop=True
-        else:
-            self.best_score=score
-            if dev_acc>self.dev_best_acc:
-                self.dev_best_acc=dev_acc
-                self.save_checkpoint(model,optimizer,scheduler,epoch,dev_loss,dev_acc)
-            self.counter=0
-        return self.early_stop
-    
-    def save_checkpoint(self,model,optimizer,scheduler,epoch,loss,acc):
-        checkpoint_name=f"checkpoint_epoch_{epoch+1}.pt"
-        checkpoint_path=os.path.join(self.experiment_dir,checkpoint_name)
-        checkpoint={
-            'epoch':epoch,
-            'model':model.state_dict(),
-            'optimizer':optimizer.state_dict(),
-            'scheduler':scheduler.state_dict(),
-            'loss':loss,
-            'acc':acc
-        }
-        torch.save(checkpoint,checkpoint_path)
-        print(f"保存epoch{epoch+1}的checkpoint:{checkpoint_path}")
-        if acc==self.dev_best_acc:
-            self.best_model_path=checkpoint_path
-            print(f"保存最佳模型：{self.best_model_path}")
-
 class Metrics:
     def __init__(self,true_labels,pred_labels,config,id2label):
         self.num_classes=config.num_classes

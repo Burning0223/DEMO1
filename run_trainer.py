@@ -2,7 +2,7 @@ import swanlab
 from torch import nn
 import os
 import torch
-from untils import Metrics,EarlyStopping,Cls_Config,create_labels_mapping,load_label_mapping
+from untils import Metrics,CheckpointManager,Cls_Config,create_labels_mapping,load_label_mapping
 import random
 import numpy as np
 from transformers import get_linear_schedule_with_warmup
@@ -23,11 +23,13 @@ class Trainer():
         self.optimizer=optimizer
         self.scheduler=scheduler
         self.id2label=id2label
-        self.early_stopping=EarlyStopping(self.config,verbose=True)
         self.loss_fn=nn.CrossEntropyLoss()
 
+        self.experiment_name=f"max_length_{self.config.max_length}_num_epochs_{self.config.num_epochs}_batch_size_{self.config.batch_size}_lr_{self.config.learning_rate}"
+        self.experiment_dir=os.path.join("experiment",self.experiment_name)
+        os.makedirs(self.experiment_dir,exist_ok=True)
         swanlab.init(project="Bert_text_classification",
-             experiment_name=self.early_stopping.experiment_name,
+             experiment_name=self.experiment_name,
              config={
                 "max_length":self.config.max_length,
                 "num_epochs":self.config.num_epochs,
@@ -75,8 +77,8 @@ class Trainer():
         dev_acc=dev_metrics.acc
         return ave_loss,dev_acc
 
-    def train_with_early_stopping(self,train_dataloader,dev_dataloader):
-        dev_best_acc=0
+    def save_checkpoint(self,train_dataloader,dev_dataloader):
+        dev_best_acc=0.0
         for epoch in range(self.config.num_epochs):
             print(f"Epoch {epoch+1}")
             train_loss,train_acc=self.train(train_dataloader)
@@ -86,6 +88,23 @@ class Trainer():
             print(f"验证损失:{dev_loss:.4f}")
             print(f"验证准确率:{dev_acc:.4f}")
             
+            checkpoint_name=f"checkpoint_epoch_{epoch+1}.pt"
+            checkpoint_path=os.path.join(self.experiment_dir,checkpoint_name)
+            checkpoint={
+                'epoch':epoch,
+                'model':self.model.state_dict(),
+                'optimizer':self.optimizer.state_dict(),
+                'scheduler':self.scheduler.state_dict(),
+                'loss':dev_loss,
+                'acc':dev_acc
+            }
+            torch.save(checkpoint,checkpoint_path)
+            print(f"保存epoch{epoch+1}的checkpoint:{checkpoint_path}")
+            if dev_acc>=dev_best_acc:
+                dev_best_acc=dev_acc
+                best_model_path=checkpoint_path
+                print(f"当前模型最优准确率为：{dev_best_acc}")
+                print(f"保存最佳模型：{best_model_path}")
             swanlab.log({
                 "epoch":epoch,
                 "训练损失":train_loss,
@@ -93,14 +112,6 @@ class Trainer():
                 "验证损失":dev_loss,
                 "验证准确率":dev_acc
             })
-
-            if dev_acc>dev_best_acc:
-                dev_best_acc=dev_acc
-                print(f"当前模型最优准确率为：{dev_best_acc}")
-            if self.early_stopping(dev_loss,dev_acc,self.model,self.optimizer,self.scheduler,epoch):
-                print(f"在epoch{epoch+1}发生训练早停")
-                break
-            
             
         print(f"模型最优准确率为：{dev_best_acc}")
     
