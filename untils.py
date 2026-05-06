@@ -2,6 +2,32 @@ import os
 import json
 import torch
 
+def create_labels_mapping(train_data_path):
+    save_path=os.path.join(os.path.dirname(train_data_path),"labels_mapping.json")
+    label_set = set()
+    with open(train_data_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            parts = line.strip().split("_!_")
+            label_set.add(int(parts[1]))
+    label2id={label:id for id,label in enumerate(sorted(label_set))}
+    id2label={id:label for label,id in label2id.items()}
+    mappings={
+                    "label2id":label2id,
+                    "id2label":id2label
+                }
+    with open(save_path,'w',encoding='utf-8') as f:
+        json.dump(mappings,f,ensure_ascii=False,indent=4)
+
+def load_label_mapping(data_path):
+    file_path = os.path.join(data_path, "label_mapping.json")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"label_mapping.json 不存在，先生成: {file_path}")
+    with open(file_path, 'r', encoding='utf-8') as f:
+        mapping = json.load(f)
+    label2id = {int(k): v for k, v in mapping['label2id'].items()}
+    id2label = {int(k): v for k, v in mapping['id2label'].items()}
+    return label2id, id2label
+
 class Cls_Config:
     def __init__(self,config_path="Bert_Config.json"):
         self.config_dict=self.load_config(config_path)
@@ -72,7 +98,7 @@ class EarlyStopping:
             print(f"保存最佳模型：{self.best_model_path}")
 
 class Metrics:
-    def __init__(self,true_labels,pred_labels,id2label,config):
+    def __init__(self,true_labels,pred_labels,config,id2label):
         self.num_classes=config.num_classes
         self.true_labels=true_labels
         self.pred_labels=pred_labels

@@ -1,7 +1,8 @@
 import swanlab
 from torch import nn
+import os
 import torch
-from untils import Metrics,EarlyStopping,Cls_Config
+from untils import Metrics,EarlyStopping,Cls_Config,create_labels_mapping,load_label_mapping
 import random
 import numpy as np
 from transformers import get_linear_schedule_with_warmup
@@ -16,13 +17,13 @@ def random_seed(seed):
 
 
 class Trainer():
-    def __init__(self,model,config,id2label,optimizer,scheduler):
+    def __init__(self,model,config,optimizer,scheduler,id2label):
         self.model=model
         self.config=config
         self.optimizer=optimizer
         self.scheduler=scheduler
-        self.early_stopping=EarlyStopping(self.config,verbose=True)
         self.id2label=id2label
+        self.early_stopping=EarlyStopping(self.config,verbose=True)
         self.loss_fn=nn.CrossEntropyLoss()
 
         swanlab.init(project="Bert_text_classification",
@@ -52,7 +53,7 @@ class Trainer():
             self.optimizer.step()
             self.scheduler.step()
         ave_loss=total_loss/len(dataloader)
-        train_metrics=Metrics(all_labels,all_preds,self.id2label,self.config)
+        train_metrics=Metrics(all_labels,all_preds,self.config,self.id2label)
         train_acc=train_metrics.acc
         return ave_loss,train_acc
     
@@ -70,7 +71,7 @@ class Trainer():
                 all_preds.extend(preds.numpy())
                 total_loss+=loss.item()
         ave_loss=total_loss/len(dataloader)
-        dev_metrics=Metrics(all_labels,all_preds,self.id2label,self.config)
+        dev_metrics=Metrics(all_labels,all_preds,self.config,self.id2label)
         dev_acc=dev_metrics.acc
         return ave_loss,dev_acc
 
@@ -107,10 +108,15 @@ def main(config_path="Bert_Config.json"):
     config=Cls_Config(config_path)
     random_seed(config.random)
 
-    train_dataset=TextClassificationDataset(config=config,dataset_type="train")
-    dev_dataset=TextClassificationDataset(config=config,dataset_type="dev")
-
-    id2label=train_dataset.id2label
+    if not os.path.exists(os.path.join(config.data_path,"labels_mapping.json")):
+        train_data_path=os.path.join(config.data_path,"train_3k.txt")
+        create_labels_mapping(train_data_path)
+    label2id, id2label = load_label_mapping(config.data_path)
+    if len(label2id)!=config.num_classes:
+            print(f"标签类别数不匹配！实际类别数：{len(label2id)}，配置文件中的类别数：{config.num_classes}")
+    
+    train_dataset=TextClassificationDataset(config=config,dataset_type="train",label2id=label2id)
+    dev_dataset=TextClassificationDataset(config=config,dataset_type="dev",label2id=label2id)
 
     train_dataloader=DataLoader(train_dataset,config.batch_size,shuffle=True,collate_fn=train_dataset.collate_fn)
     dev_dataloader=DataLoader(dev_dataset,config.batch_size,shuffle=False,collate_fn=dev_dataset.collate_fn)
@@ -124,7 +130,7 @@ def main(config_path="Bert_Config.json"):
     num_warmup_steps = int(total_steps * 0.1)
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=total_steps)
     
-    trainer=Trainer(model,config,id2label,optimizer,scheduler)
+    trainer=Trainer(model,config,optimizer,scheduler,id2label)
     trainer.train_with_early_stopping(train_dataloader,dev_dataloader)
     
 if __name__=="__main__":

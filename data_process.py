@@ -1,35 +1,16 @@
 import torch
 from torch.utils.data import Dataset
 from transformers import BertTokenizer
-import json
-import pandas as pd
+
 
 class TextClassificationDataset(Dataset):
-    def __init__(self,config,dataset_type):
+    def __init__(self,config,dataset_type,label2id):
         super().__init__()
         self.config=config
-        self.label2id,self.id2label=self.get_id_label()
+        self.label2id=label2id
         self.texts,self.keywords,self.labels=self.load_data(dataset_type)
         self.tokenizer=BertTokenizer.from_pretrained(config.model_path)
-        
-    def get_id_label(self):
-        label_set=set()
-        for dataset in ['train','dev','test']:
-            csv_file=self.config.config_dict.get(f"{dataset}_data_path")
-            data=pd.read_csv(csv_file)
-            label_set.update(data['label'].tolist())
-        label2id={label:id for id,label in enumerate(sorted(label_set))}
-        id2label={id:label for label,id in label2id.items()}
-        if len(label2id)!=self.config.num_classes:
-            print(f"标签类别数不匹配！实际类别数：{len(label2id)}，配置文件中的类别数：{self.config.num_classes}")
-        mappings={
-                    "label2id":label2id,
-                    "id2label":id2label
-                }
-        with open("label_mapping.json",'w',encoding="utf-8") as f:
-                json.dump(mappings,f,ensure_ascii=False,indent=4)
 
-        return label2id,id2label
     def load_data(self,dataset_type):
         if dataset_type == "train":
             file_path = f"{self.config.data_path}/train_3k.txt"
