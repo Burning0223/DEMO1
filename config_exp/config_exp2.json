@@ -8,5 +8,5 @@
     "data_path":"./data_path/",
     "dropout":0.1,
     "random":42,
-    "use_keyword":true
+    "use_keyword":false
 }

@@ -1,32 +1,5 @@
 import os
 import json
-import torch
-
-def create_labels_mapping(train_data_path):
-    save_path=os.path.join(os.path.dirname(train_data_path),"labels_mapping.json")
-    label_set = set()
-    with open(train_data_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            parts = line.strip().split("_!_")
-            label_set.add(int(parts[1]))
-    label2id={label:id for id,label in enumerate(sorted(label_set))}
-    id2label={id:label for label,id in label2id.items()}
-    mappings={
-                    "label2id":label2id,
-                    "id2label":id2label
-                }
-    with open(save_path,'w',encoding='utf-8') as f:
-        json.dump(mappings,f,ensure_ascii=False,indent=4)
-
-def load_label_mapping(data_path):
-    file_path = os.path.join(data_path, "label_mapping.json")
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"label_mapping.json 不存在，先生成: {file_path}")
-    with open(file_path, 'r', encoding='utf-8') as f:
-        mapping = json.load(f)
-    label2id = {int(k): v for k, v in mapping['label2id'].items()}
-    id2label = {int(k): v for k, v in mapping['id2label'].items()}
-    return label2id, id2label
 
 class Cls_Config:
     def __init__(self,config_path="config.json"):
@@ -121,6 +94,18 @@ class Metrics:
         weighted_f1=sum([self.f1[i]*self.support[i] for i in range(self.num_classes)])/sum_support
         print(f"\n{'weighted avg':<10}{weighted_precision:<15.2f}{weighted_recall:<15.2f}{weighted_f1:<15.2f}{sum_support:<10}")
       
+class LabelManager:
+    def __init__(self,data_path,):
+        self.data_path=data_path
+        self.mapping_file=os.path.join(data_path, "labels_mapping.json")
 
+    def load_labels_mapping(self):
+        if not os.path.exists(self.mapping_file):
+            raise FileNotFoundError(f"labels_mapping.json 不存在，先生成: {self.mapping_file}")
+        with open(self.mapping_file, 'r', encoding='utf-8') as f:
+            mapping = json.load(f)
+        label2id = {int(k): v for k, v in mapping['label2id'].items()}
+        id2label = {int(k): v for k, v in mapping['id2label'].items()}
+        return label2id, id2label
 
         
