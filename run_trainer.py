@@ -27,7 +27,7 @@ class Trainer():
         self.optimizer=optimizer
         self.scheduler=scheduler
         self.id2label=id2label
-        self.loss_fn=nn.CrossEntropyLoss()
+        self.loss_fn=nn.CrossEntropyLoss(ignore_index=-1)
 
         self.experiment_name=f"max_len_{self.config.max_length}_num_epochs_{self.config.num_epochs}_bs_{self.config.batch_size}_lr_{self.config.learning_rate}_use_key_{self.config.use_keyword}"
         self.experiment_dir=os.path.join("experiment",self.experiment_name)

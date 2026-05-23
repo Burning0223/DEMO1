@@ -67,9 +67,10 @@ class Metrics:
         return recall
     def calculate_f1(self):
         f1=[]
+        eps=1e-8
         for i in range(self.num_classes):
             if self.precision[i]+self.recall[i]>0:
-                f1.append(2*self.precision[i]*self.recall[i]/(self.precision[i]+self.recall[i]))
+                f1.append(2*self.precision[i]*self.recall[i]/(self.precision[i]+self.recall[i]+eps))
             else:
                 f1.append(0)
         return f1  

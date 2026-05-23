@@ -26,21 +26,24 @@ class TextClassificationDataset(Dataset):
         with open(file_path,'r',encoding='utf-8') as f:
             for line in f:
                 parts=line.strip().split("_!_")
-
-                label_code=int(parts[1])
-                text=parts[3]
-                keyword=parts[4]
-
-                keyword=keyword.replace(","," ")
-                texts.append(text)
-                keywords.append(keyword)
-
-                if label_code in self.label2id:
-                    label=self.label2id[label_code]
+                try:
+                    label_code=parts[1]
+                    text=parts[3]
+                    keyword=parts[4].replace(","," ")
+                    assert len(label_code) == 3
+                    label_code = int(label_code)
+                except Exception:
+                    pass
                 else:
-                    print(f"警告：标签{label_code}未在label2id中找到,默认为-1")
-                    label=-1
-                labels.append(label)
+                    texts.append(text)
+                    keywords.append(keyword)
+
+                    if label_code in self.label2id:
+                        label=self.label2id[label_code]
+                    else:
+                        print(f"警告：标签{label_code}未在label2id中找到,默认为-1")
+                        label=-1
+                    labels.append(label)
 
         return texts,keywords,labels 
 
